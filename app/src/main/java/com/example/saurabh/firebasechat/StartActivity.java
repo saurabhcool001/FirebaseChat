@@ -14,6 +14,7 @@ public class StartActivity extends AppCompatActivity {
     Context context;
 
     private Button mStartRegisterBtn;
+    private Button mStartLoginBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +25,7 @@ public class StartActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(context);
 
         mStartRegisterBtn = (Button) findViewById(R.id.start_register_btn);
+        mStartLoginBtn = (Button) findViewById(R.id.start_login_btn);
 
         mStartRegisterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -31,6 +33,18 @@ public class StartActivity extends AppCompatActivity {
 
                 Intent registerIntent = new Intent(StartActivity.this, RegisterActivity.class);
                 startActivity(registerIntent);
+                finish();
+
+            }
+        });
+
+        mStartLoginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent loginIntent = new Intent(StartActivity.this, LoginActivity.class);
+                startActivity(loginIntent);
+                finish();
 
             }
         });

@@ -82,6 +82,7 @@ public class LoginActivity extends AppCompatActivity {
                     mLoginProgress.dismiss();
                     Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
                     Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
+                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainIntent);
                     finish();
                 }
