@@ -3,6 +3,7 @@ package com.example.saurabh.firebasechat;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -29,7 +30,14 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import de.hdodenhof.circleimageview.CircleImageView;
+import id.zelory.compressor.Compressor;
 
 public class SettingActivity extends AppCompatActivity {
 
@@ -86,7 +94,9 @@ public class SettingActivity extends AppCompatActivity {
                 mName.setText(name);
                 mStatus.setText(status);
 
-                Picasso.with(SettingActivity.this).load(image).into(mDisplayImage);
+                if (!image.equals("default")) {
+                    Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
+                }
             }
 
             @Override
@@ -119,7 +129,7 @@ public class SettingActivity extends AppCompatActivity {
             }
         });
 
-
+        mDatabaseRef.keepSynced(true);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -139,6 +149,7 @@ public class SettingActivity extends AppCompatActivity {
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
+
                 mProgress.setTitle("Uploading Image");
                 mProgress.setMessage("Please wait while we upload image");
                 mProgress.setCanceledOnTouchOutside(true);
@@ -146,26 +157,66 @@ public class SettingActivity extends AppCompatActivity {
 
                 Uri resultUri = result.getUri();
 
+                //zetbaitsu image Compressor
+                final File thumb_filepath = new File(resultUri.getPath());
+                byte[] thumb_bite = new byte[0];
+                try {
+                    Bitmap thumb_bitmap = new Compressor(this)
+                            .setMaxWidth(200)
+                            .setMaxHeight(200)
+                            .setQuality(80)
+                            .compressToBitmap(thumb_filepath);
+
+                    //Convert data to Byte
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    thumb_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                    thumb_bite = baos.toByteArray();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 //StorageReference filePath = mStorageRef.child(mImageUri.getLastPathSegment());
                 StorageReference filePath = mStorageRef.child(uid + ".jpg");
+                final StorageReference thumb_filePath_ref = mStorageRef.child("thumb").child(uid + ".jpg");
+
+                final byte[] finalThumb_bite = thumb_bite;
                 filePath.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    public void onComplete(@NonNull final Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
 
-                            @SuppressWarnings("VisibleForTests") String downloadUrl = task.getResult().getDownloadUrl().toString();
-                            mDatabaseRef.child("image").setValue(downloadUrl).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @SuppressWarnings("VisibleForTests") final String downloadUrl = task.getResult().getDownloadUrl().toString();
+
+                            UploadTask uploadTask = thumb_filePath_ref.putBytes(finalThumb_bite);
+                            uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                                 @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        mProgress.dismiss();
-                                        Toast.makeText(SettingActivity.this, "Upload Success", Toast.LENGTH_SHORT).show();
+                                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> thumb_task) {
+
+                                    @SuppressWarnings("VisibleForTests") final String thumb_downloadUrl = thumb_task.getResult().getDownloadUrl().toString();
+
+                                    if (thumb_task.isSuccessful()) {
+
+                                        Map<String, Object> user_hashMap = new HashMap<String, Object>();
+                                        user_hashMap.put("image", downloadUrl);
+                                        user_hashMap.put("thumb_image", thumb_downloadUrl);
+
+                                        mDatabaseRef.updateChildren(user_hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                if (task.isSuccessful()) {
+                                                    mProgress.dismiss();
+                                                    Toast.makeText(SettingActivity.this, "Uploading Success", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
                                     }
                                 }
                             });
-
-                        }else {
-                            Toast.makeText(SettingActivity.this, "Error in uploading.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(SettingActivity.this, "Error in uploading thumbnail.", Toast.LENGTH_SHORT).show();
+                            mProgress.dismiss();
                         }
                     }
                 });

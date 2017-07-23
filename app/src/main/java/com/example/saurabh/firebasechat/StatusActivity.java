@@ -8,6 +8,7 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -68,19 +69,25 @@ public class StatusActivity extends AppCompatActivity {
 
                 String status = mStatus.getEditText().getText().toString();
 
-                mDatabaseRef.child("status").setValue(status).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            mProgress.dismiss();
-                            Intent settingIntent = new Intent(StatusActivity.this, SettingActivity.class);
-                            startActivity(settingIntent);
-                        }else {
-                            mProgress.hide();
-                            Toast.makeText(StatusActivity.this, "There was error in saving changes.", Toast.LENGTH_SHORT).show();
+                if (!TextUtils.isEmpty(status)) {
+
+                    mDatabaseRef.child("status").setValue(status).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                mProgress.dismiss();
+                                Intent settingIntent = new Intent(StatusActivity.this, SettingActivity.class);
+                                startActivity(settingIntent);
+                            } else {
+                                mProgress.hide();
+                                Toast.makeText(StatusActivity.this, "There was error in saving changes.", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
-                });
+                    });
+                }else {
+                    mProgress.hide();
+                    Toast.makeText(StatusActivity.this, "Enter Your Display Status.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
