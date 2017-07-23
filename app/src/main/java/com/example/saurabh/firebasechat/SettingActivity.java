@@ -26,6 +26,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -72,6 +74,7 @@ public class SettingActivity extends AppCompatActivity {
         uid = mCurrentUser.getUid();
         mDatabaseRef = Database.getReference().child("Users").child(uid);
         mStorageRef = storage.getReference().child("Profile_Images");
+        mDatabaseRef.keepSynced(true);
 
         mName = (TextView) findViewById(R.id.setting_display_name);
         mDisplayImage = (CircleImageView) findViewById(R.id.setting_image);
@@ -87,7 +90,7 @@ public class SettingActivity extends AppCompatActivity {
 
 //                Toast.makeText(SettingActivity.this, "DataSnapShot : " + dataSnapshot.toString(), Toast.LENGTH_SHORT).show();
                 String name = dataSnapshot.child("name").getValue().toString();
-                String image = dataSnapshot.child("image").getValue().toString();
+                final String image = dataSnapshot.child("image").getValue().toString();
                 String status = dataSnapshot.child("status").getValue().toString();
                 String thumb_image = dataSnapshot.child("thumb_image").getValue().toString();
 
@@ -95,7 +98,20 @@ public class SettingActivity extends AppCompatActivity {
                 mStatus.setText(status);
 
                 if (!image.equals("default")) {
-                    Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
+                    //Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
+                    Picasso.with(SettingActivity.this).load(image).networkPolicy(NetworkPolicy.OFFLINE)
+                            .placeholder(R.mipmap.user_image_transparent).into(mDisplayImage, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
+                        }
+
+                        @Override
+                        public void onError() {
+
+                        }
+                    });
+
                 }
             }
 
