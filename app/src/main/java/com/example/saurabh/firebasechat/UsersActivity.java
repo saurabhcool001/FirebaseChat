@@ -1,6 +1,7 @@
 package com.example.saurabh.firebasechat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UsersActivity extends AppCompatActivity {
 
@@ -67,7 +70,19 @@ public class UsersActivity extends AppCompatActivity {
 
                         viewHolder.setName(model.getName());
                         viewHolder.setStatus(model.getStatus());
-                        viewHolder.setImage(getApplicationContext(), model.getImage());
+                        //viewHolder.setImage(getApplicationContext(), model.getImage());
+                        viewHolder.setImage(getApplicationContext(), model.getThumb_image());
+
+                        final String user_id = getRef(position).getKey();
+
+                        viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent profileIntent = new Intent(UsersActivity.this, ProfileActivity.class);
+                                profileIntent.putExtra("user_id", user_id);
+                                startActivity(profileIntent);
+                            }
+                        });
                     }
                 };
 
@@ -93,9 +108,14 @@ public class UsersActivity extends AppCompatActivity {
             userStatus.setText(status);
         }
 
-        public void setImage(Context context, String image) {
-            ImageView userImage = (ImageView) mView.findViewById(R.id.user_single_image);
-            Picasso.with(context).load(image).into(userImage);
+//        public void setImage(Context context, String image) {
+//            ImageView userImage = (ImageView) mView.findViewById(R.id.user_single_image);
+//            Picasso.with(context).load(image).placeholder(R.mipmap.user_image_transparent).into(userImage);
+//        }
+
+        public void setImage(Context context, String thumb_image) {
+            CircleImageView userImageView = (CircleImageView) mView.findViewById(R.id.user_single_image);
+            Picasso.with(context).load(thumb_image).placeholder(R.mipmap.user_image_transparent).into(userImageView);
         }
     }
 }
