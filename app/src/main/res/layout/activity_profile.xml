@@ -63,16 +63,16 @@
         android:id="@+id/profile_request_send_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:background="@color/colorAccent"
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
         android:text="Send Friend Request"
         android:textColor="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/profile_decline_friend_request_btn"
         app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/profile_decline_friend_request_btn" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <Button
         android:id="@+id/profile_decline_friend_request_btn"
