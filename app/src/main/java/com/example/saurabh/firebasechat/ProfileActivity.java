@@ -170,6 +170,38 @@ public class ProfileActivity extends AppCompatActivity {
                     });
                 }
 
+                /*REQUEST RECEIVED STATE*/
+                if (mCurrent_state.equals("req_received")) {
+                    Log.i("Request_State", "onCreate: 1");
+                    final String currentDate = DateFormat.getDateInstance().format(new Date());
+
+                    mFriendDatabse.child(current_userId).child(user_id).setValue(currentDate)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    mFriendDatabse.child(user_id).child(current_userId).setValue(currentDate)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    mFriendRequestDatabase.child(current_userId).child(user_id).child("request_type").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            mFriendRequestDatabase.child(user_id).child(current_userId).child("request_type").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    mSendFriendRequestBtn.setEnabled(true);
+                                                                    mCurrent_state = "friends";
+                                                                    mSendFriendRequestBtn.setText("UNFRIEND THIS PERSON");
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                }
+                            });
+                }
+
                 // CANCEL REQUEST STATE
                 if (mCurrent_state.equals("req_sent")) {
                     mFriendRequestDatabase.child(current_userId).child(user_id).child("request_type").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -231,37 +263,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
-        /*REQUEST RECEIVED STATE*/
-        if (mCurrent_state.equals("req_received")) {
-            Log.i("Request_State", "onCreate: 1");
-            final String currentDate = DateFormat.getDateInstance().format(new Date());
 
-            mFriendDatabse.child(current_userId).child(user_id).setValue(currentDate)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            mFriendDatabse.child(user_id).child(current_userId).setValue(currentDate)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            mFriendRequestDatabase.child(current_userId).child(user_id).child("request_type").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-                                                    mFriendRequestDatabase.child(user_id).child(current_userId).child("request_type").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                            mSendFriendRequestBtn.setEnabled(true);
-                                                            mCurrent_state = "friends";
-                                                            mSendFriendRequestBtn.setText("UNFRIEND THIS PERSON");
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                        }
-                    });
-        }
 
     }
 }
