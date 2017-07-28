@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.HashMap;
 
@@ -37,6 +38,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressDialog mRegProgress;
 
     private FirebaseAuth mAuth;
+    String uid;
 
     FirebaseDatabase Database = FirebaseDatabase.getInstance();
     DatabaseReference mDatabaseRef;
@@ -94,7 +96,9 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
 
                             FirebaseUser current_user = FirebaseAuth.getInstance().getCurrentUser();
-                            String uid = current_user.getUid();
+                            uid = current_user.getUid();
+
+                            String deviceToken = FirebaseInstanceId.getInstance().getToken();
 
                             mDatabaseRef = Database.getReference().child("Users").child(uid);
 
@@ -103,6 +107,7 @@ public class RegisterActivity extends AppCompatActivity {
                             userMap.put("status", "Hi! there, I'm using Aroma chat app.");
                             userMap.put("image", "default");
                             userMap.put("thumb_image", "default");
+                            userMap.put("device_token", deviceToken);
 
                             mDatabaseRef.setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override

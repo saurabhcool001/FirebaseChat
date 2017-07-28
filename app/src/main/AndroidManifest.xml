@@ -21,6 +21,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".FirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity android:name=".StartActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,9 +37,10 @@
         </activity>
         <activity
             android:name=".RegisterActivity"
-            android:parentActivityName=".StartActivity" />
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SettingActivity" />
+            android:parentActivityName=".StartActivity"/>
+        <activity android:name=".LoginActivity"/>
+        <activity android:name=".SettingActivity"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".StatusActivity"
             android:parentActivityName=".SettingActivity" />
@@ -42,7 +50,12 @@
         <activity
             android:name=".UsersActivity"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".ProfileActivity"></activity>
+        <activity android:name=".ProfileActivity">
+            <intent-filter>
+                <action android:name="com.example.saurabh.firebasechat_TARGET_NOTIFICATION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

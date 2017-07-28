@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -19,6 +20,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -32,6 +37,10 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressDialog mLoginProgress;
 
     private FirebaseAuth mAuth;
+    private FirebaseDatabase Database = FirebaseDatabase.getInstance();
+    private DatabaseReference mDatabaseRef;
+    private FirebaseUser mCurrentUser;
+    private String uid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(context);
 
         mAuth = FirebaseAuth.getInstance();
+        mDatabaseRef = Database.getReference().child("Users");
 
         mToolbar = (Toolbar) findViewById(R.id.register_toolbar);
         setSupportActionBar(mToolbar);
@@ -80,11 +90,27 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (task.isSuccessful()) {
                     mLoginProgress.dismiss();
-                    Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
-                    Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
-                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(mainIntent);
-                    finish();
+
+                    uid = mAuth.getCurrentUser().getUid();
+                    String deviceToken = FirebaseInstanceId.getInstance().getToken();
+
+                    mDatabaseRef.child(uid).child("device_token").setValue(deviceToken).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+
+                            Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+                            Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
+                            mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(mainIntent);
+                            finish();
+                        }
+                    });
+
+//                    Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+//                    Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
+//                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                    startActivity(mainIntent);
+//                    finish();
                 }
 
                 // If sign in fails, display a message to the user. If sign in succeeds

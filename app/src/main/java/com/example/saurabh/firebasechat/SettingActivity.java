@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -61,6 +62,7 @@ public class SettingActivity extends AppCompatActivity {
     private Uri mImageUri = null;
     private String uid;
     private ProgressDialog mProgress;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,11 @@ public class SettingActivity extends AppCompatActivity {
 
         context = getApplicationContext();
         FirebaseApp.initializeApp(context);
+
+        mToolbar = (Toolbar) findViewById(R.id.activity_appBar);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setTitle("User Setting");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         uid = mCurrentUser.getUid();
