@@ -15,6 +15,9 @@ import android.view.MenuItem;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     public static final String Tag = "MAIN_ACTIVITY";
+    private String current_userId;
+    private FirebaseDatabase Database;
+    private DatabaseReference mUserRef;
 
     private Toolbar mToolbar;
 
@@ -39,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(context);
 
         mAuth = FirebaseAuth.getInstance();
+        current_userId = mAuth.getCurrentUser().getUid();
+        Database = FirebaseDatabase.getInstance();
+        mUserRef = Database.getReference().child("Users").child(current_userId);
 
         mToolbar = (Toolbar) findViewById(R.id.main_app_bar);
         setSupportActionBar(mToolbar);
@@ -57,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
                 if (user != null) {
                     // User is signed in
                     Log.d(Tag, "onAuthStateChanged:signed_in:" + user.getUid());
+                    mUserRef.child("online").setValue(true);
+
                 } else if (user == null) {
                     // User is signed out
                     Log.d(Tag, "onAuthStateChanged:signed_out");
@@ -88,6 +99,14 @@ public class MainActivity extends AppCompatActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        //mUserRef.child("lastSeen").setValue(ServerValue.TIMESTAMP);
+        //mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
     }
 
     @Override
@@ -101,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
         if (item.getItemId() == R.id.main_logout_btn) {
+            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
             FirebaseAuth.getInstance().signOut();
             sendToStart();
         }

@@ -38,4 +38,16 @@
         app:layout_constraintLeft_toLeftOf="@+id/user_single_name"
         app:layout_constraintTop_toBottomOf="@+id/user_single_name" />
 
+    <ImageView
+        android:id="@+id/user_single_online_icon"
+        android:layout_width="31dp"
+        android:layout_height="31dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="22dp"
+        android:background="@android:color/transparent"
+        android:visibility="invisible"
+        app:layout_constraintLeft_toRightOf="@+id/user_single_name"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/ic_online" />
+
 </android.support.constraint.ConstraintLayout>

@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -23,6 +24,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -42,6 +44,8 @@ import java.util.Map;
 import de.hdodenhof.circleimageview.CircleImageView;
 import id.zelory.compressor.Compressor;
 
+import static com.example.saurabh.firebasechat.MainActivity.Tag;
+
 public class SettingActivity extends AppCompatActivity {
 
     private static final int GALLERY_REQUEST = 1;
@@ -53,6 +57,7 @@ public class SettingActivity extends AppCompatActivity {
     private DatabaseReference mDatabaseRef;
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference mStorageRef;
+    private String current_userId;
 
     private CircleImageView mDisplayImage;
     private TextView mName;
@@ -105,17 +110,22 @@ public class SettingActivity extends AppCompatActivity {
                 mStatus.setText(status);
 
                 if (!image.equals("default")) {
+
+                    //Log.i("image_setting", "onDataChange: " + image);
                     //Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
-                    Picasso.with(SettingActivity.this).load(image).networkPolicy(NetworkPolicy.OFFLINE)
+//                    Picasso.with(SettingActivity.this).load(image).networkPolicy(NetworkPolicy.OFFLINE)
+//                            .placeholder(R.mipmap.user_image_transparent).into(mDisplayImage, new Callback() {
+                    Picasso.with(SettingActivity.this).load(image)
                             .placeholder(R.mipmap.user_image_transparent).into(mDisplayImage, new Callback() {
                         @Override
                         public void onSuccess() {
+                            //Log.i("image_setting", "onDataChange: 0" + image);
                             Picasso.with(SettingActivity.this).load(image).placeholder(R.mipmap.user_image_transparent).into(mDisplayImage);
                         }
 
                         @Override
                         public void onError() {
-
+                            //Log.i("image_setting", "onDataChange: 1 " + image);
                         }
                     });
 
@@ -132,8 +142,13 @@ public class SettingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String status_value = mStatus.getText().toString();
+                String status_display_name = mName.getText().toString();
+
                 Intent statusIntent = new Intent(SettingActivity.this, StatusActivity.class);
-                statusIntent.putExtra("status_value", status_value);
+                Bundle extras = new Bundle();
+                extras.putString("status_value", status_value);
+                extras.putString("status_display_name", status_display_name);
+                statusIntent.putExtras(extras);
                 startActivity(statusIntent);
             }
         });
@@ -153,6 +168,7 @@ public class SettingActivity extends AppCompatActivity {
         });
 
         mDatabaseRef.keepSynced(true);
+        mDatabaseRef.child("online").setValue(true);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -247,5 +263,29 @@ public class SettingActivity extends AppCompatActivity {
                 Exception error = result.getError();
             }
         }
+    }
+
+    private void sendToStart() {
+        Intent startIntent = new Intent(SettingActivity.this, StartActivity.class);
+        startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(startIntent);
+        finish();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //mDatabaseRef.child("online").setValue(false);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mDatabaseRef.child("online").setValue(ServerValue.TIMESTAMP);
     }
 }

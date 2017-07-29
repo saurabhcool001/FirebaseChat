@@ -9,17 +9,22 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.example.saurabh.firebasechat.MainActivity.Tag;
 
 public class UsersActivity extends AppCompatActivity {
 
@@ -28,8 +33,10 @@ public class UsersActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     private RecyclerView mUserRecyclerList;
 
+    private FirebaseAuth mAuth;
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
-    private DatabaseReference mDatabaseRef;
+    private DatabaseReference mDatabaseRef, mUserRef;
+    private String current_userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +46,10 @@ public class UsersActivity extends AppCompatActivity {
         context = getApplicationContext();
         FirebaseApp.initializeApp(context);
 
+        mAuth = FirebaseAuth.getInstance();
+        current_userId = mAuth.getCurrentUser().getUid();
         mDatabaseRef = Database.getReference().child("Users");
+        mUserRef = Database.getReference().child("Users").child(current_userId);
 
         mToolbar = (Toolbar) findViewById(R.id.user_appBar);
         setSupportActionBar(mToolbar);
@@ -49,8 +59,16 @@ public class UsersActivity extends AppCompatActivity {
         mUserRecyclerList = (RecyclerView) findViewById(R.id.user_recycler_list);
         mUserRecyclerList.setHasFixedSize(true);
         mUserRecyclerList.setLayoutManager(new LinearLayoutManager(this));
-
         mDatabaseRef.keepSynced(true);
+
+        mUserRef.child("online").setValue(true);
+    }
+
+    private void sendToStart() {
+        Intent startIntent = new Intent(UsersActivity.this, StartActivity.class);
+        startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(startIntent);
+        finish();
     }
 
     @Override
@@ -117,5 +135,17 @@ public class UsersActivity extends AppCompatActivity {
             CircleImageView userImageView = (CircleImageView) mView.findViewById(R.id.user_single_image);
             Picasso.with(context).load(thumb_image).placeholder(R.mipmap.user_image_transparent).into(userImageView);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //mUserRef.child("online").setValue(false);
     }
 }

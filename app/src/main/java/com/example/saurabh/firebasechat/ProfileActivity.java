@@ -2,6 +2,7 @@ package com.example.saurabh.firebasechat;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -29,6 +31,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.DataFormatException;
+
+import static com.example.saurabh.firebasechat.MainActivity.Tag;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -44,7 +48,7 @@ public class ProfileActivity extends AppCompatActivity {
     private String mCurrent_state;
 
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
-    private DatabaseReference mDatabaseRef, mFriendRequestDatabase, mFriendDatabse, mNotificationDatabase, mRootRef;
+    private DatabaseReference mDatabaseRef, mFriendRequestDatabase, mFriendDatabse, mNotificationDatabase, mRootRef, mUserRef;
     private FirebaseUser mCurrentUser;
     private String current_userId;
 
@@ -66,6 +70,7 @@ public class ProfileActivity extends AppCompatActivity {
         mNotificationDatabase = Database.getReference().child("Notification");
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         current_userId = mCurrentUser.getUid();
+        mUserRef = Database.getReference().child("Users").child(current_userId);
 
         mProfileImage = (ImageView) findViewById(R.id.profile_image);
         mProfileName = (TextView) findViewById(R.id.profile_display_name);
@@ -85,6 +90,25 @@ public class ProfileActivity extends AppCompatActivity {
         mDatabaseRef.keepSynced(true);
         mFriendRequestDatabase.keepSynced(true);
         mFriendDatabse.keepSynced(true);
+
+        if (user_id.equals(current_userId)) {
+            mSendFriendRequestBtn.setVisibility(View.INVISIBLE);
+        }
+        Toast.makeText(this, "user_id : " + user_id, Toast.LENGTH_SHORT).show();
+        mFriendDatabse.child(user_id).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final int totalFriends = (int) dataSnapshot.getChildrenCount();
+                //Toast.makeText(ProfileActivity.this, "Total Friends : " + totalFriends, Toast.LENGTH_SHORT).show();
+                String newVal = Integer.toString(totalFriends);
+                mProfileFriendsCount.setText("Total Friend : " + newVal);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -241,7 +265,7 @@ public class ProfileActivity extends AppCompatActivity {
                 /*REQUEST RECEIVED STATE*/
                 if (mCurrent_state.equals("req_received")) {
                     Log.i("Request_State", "onCreate: 1");
-                    final String currentDate = DateFormat.getDateInstance().format(new Date());
+                    final String currentDate = DateFormat.getDateTimeInstance().format(new Date());
 
                     mFriendDatabse.child(current_userId).child(user_id).child("date").setValue(currentDate)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -365,7 +389,30 @@ public class ProfileActivity extends AppCompatActivity {
 
             }
         });
+        mUserRef.child("online").setValue(true);
+    }
 
+    private void sendToStart() {
+        Intent startIntent = new Intent(ProfileActivity.this, StartActivity.class);
+        startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(startIntent);
+        finish();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //mUserRef.child("online").setValue(false);
     }
 }
